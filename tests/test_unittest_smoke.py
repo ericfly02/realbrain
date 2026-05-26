@@ -1,3 +1,5 @@
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -76,6 +78,21 @@ class RealBrainSmokeTests(unittest.TestCase):
             dream_result = dream(mode="rem_generation", budget=3, focus_area="RealBrain", ctx=ctx)
             self.assertTrue(dream_result["success"])
             self.assertTrue(any("hypothesis" in warning.lower() for warning in dream_result["warnings"]))
+
+    def test_demo_runs_in_temp_dir(self):
+        demo = Path(__file__).resolve().parents[1] / "examples" / "demo.py"
+        with tempfile.TemporaryDirectory() as tmp:
+            proc = subprocess.run(
+                [sys.executable, str(demo)],
+                cwd=tmp,
+                capture_output=True,
+                text=True,
+                timeout=60,
+                check=False,
+            )
+            self.assertEqual(proc.returncode, 0, msg=f"stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}")
+            db = Path(tmp) / "demo_vault" / "ops" / "brain" / "realbrain.sqlite"
+            self.assertTrue(db.exists())
 
 
 if __name__ == "__main__":

@@ -33,6 +33,10 @@ python -m compileall realbrain realbrain_server examples tests
 python examples/demo.py
 ```
 
+Quickstart smoke check tip:
+- run `python examples/demo.py` from a temp/throwaway folder so it writes `./demo_vault` there.
+- demo uses fake local data only and should run without secrets or network access.
+
 ## Pull request checklist
 
 Before opening a PR:
