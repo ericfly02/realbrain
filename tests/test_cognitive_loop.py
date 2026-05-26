@@ -1,6 +1,8 @@
 from pathlib import Path
 import tempfile
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
+
+from realbrain.compat import UTC
 
 from realbrain.cognitive_loop import CuriosityQueue, EventExtractor, NightlyConsolidator, SynapseHygiene
 from realbrain.models import Belief, BrainEvent, Neuron, Synapse
