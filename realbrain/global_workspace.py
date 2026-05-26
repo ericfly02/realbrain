@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
+
+from .compat import UTC
 from pathlib import Path
 
 from .models import GlobalWorkspaceItem
