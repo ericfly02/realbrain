@@ -36,3 +36,17 @@ def test_store_persists_core_records():
         assert store.get_belief(belief.id).status == "fact"
         dream = store.add_dream_run(DreamRun(mode="rem_generation", generated_hypotheses=["Try a small workbench."]))
         assert store.get_dream_run(dream.id).mode == "rem_generation"
+
+
+def test_list_synapses_filters_by_confidence():
+    with tempfile.TemporaryDirectory() as tmp:
+        store = RealBrainStore(Path(tmp) / "brain.sqlite")
+        n1 = store.add_neuron(Neuron(type="concept", title="A"))
+        n2 = store.add_neuron(Neuron(type="concept", title="B"))
+        n3 = store.add_neuron(Neuron(type="concept", title="C"))
+        sure = store.add_synapse(Synapse(source_neuron_id=n1.id, target_neuron_id=n2.id, relation_type="related_to", weight=0.4, confidence=0.9))
+        shaky = store.add_synapse(Synapse(source_neuron_id=n1.id, target_neuron_id=n3.id, relation_type="related_to", weight=0.8, confidence=0.3))
+        assert [s.id for s in store.list_synapses(min_confidence=0.7)] == [sure.id]
+        assert [s.id for s in store.list_synapses(max_confidence=0.4)] == [shaky.id]
+        # min and max bracket a confidence band, dropping both edges here
+        assert store.list_synapses(min_confidence=0.4, max_confidence=0.8) == []

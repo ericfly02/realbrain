@@ -249,13 +249,25 @@ class RealBrainStore:
             row = conn.execute("SELECT payload FROM synapses WHERE id = ?", (synapse_id,)).fetchone()
         return self._load(Synapse, row)
 
-    def list_synapses(self, *, neuron_id: str | None = None, limit: int = 100) -> list[Synapse]:
+    def list_synapses(self, *, neuron_id: str | None = None, min_confidence: float | None = None,
+                      max_confidence: float | None = None, limit: int = 100) -> list[Synapse]:
         limit = max(1, min(limit, 1000))
+        clauses: list[str] = []
         params: list[object] = []
-        sql = "SELECT payload FROM synapses"
         if neuron_id:
-            sql += " WHERE source_neuron_id = ? OR target_neuron_id = ?"
+            clauses.append("(source_neuron_id = ? OR target_neuron_id = ?)")
             params.extend([neuron_id, neuron_id])
+        if min_confidence is not None:
+            # keep only edges the brain is fairly sure about, e.g. min_confidence=0.7
+            clauses.append("confidence >= ?")
+            params.append(min_confidence)
+        if max_confidence is not None:
+            # surface shaky edges worth re-checking, e.g. max_confidence=0.4
+            clauses.append("confidence <= ?")
+            params.append(max_confidence)
+        sql = "SELECT payload FROM synapses"
+        if clauses:
+            sql += " WHERE " + " AND ".join(clauses)
         sql += " ORDER BY weight DESC LIMIT ?"
         params.append(limit)
         with self.connect() as conn:
